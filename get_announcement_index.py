@@ -1,38 +1,50 @@
+import random
+
 import requests
 import time
 import re
 from bs4 import BeautifulSoup
 
 from get_announcement_detail import get_announcement_detail
-from utils.Common import GLOBAL_URI, HEADERS
+from utils.Common import GLOBAL_URI, HEADERS, StopType
+from utils.FormatDate import get_x_day_ago_zero_timestamp
 
 
-def get_announcement_index(module):
+def get_announcement_index(module, stopUrl):
     """
     解析对应url板块下的公告目录，并翻页
     用子线程去解析对应的detail
     直到解析到库中该类最新的{项目编号-标题-时间}为止
-    :param module: 模块名
+    :param module: DataModule
+    :param stopFlag: 模块名
     :return:
         detailIndex: [{announcement_info1}, {announcement_info2}]
-        detailMap: {%projectNo-%title-%release_date: {announcement_detail}, }
+        detailMap: {%url: {announcement_detail}, }
     """
     detailIndex = []
     detailMap = {}
     # 停止标识
-    # stopFlag = 'JG2023-5649-鳌头镇棋杆社区美丽圩镇建设项目-2023-09-29'
-    # 停止标识改为 url
-    stopFlag = '/jyywjsgcfwjzzbgg/961982.jhtml'
-    checkStopFlag = ''
+    if stopUrl == '':
+        # 说明找不到上一条记录，为防止频率太高而被ban，这里限制为只爬取近7天的数据
+        # 对初次运行数据获取的场景也适用
+        stopType = StopType.DATE.value
+        stopDate = get_x_day_ago_zero_timestamp(2)
+    else:
+        stopType = StopType.URL.value
+        stopDate = 0
+    # stopUrl = '/jyywjsgcfwjzzbgg/961987.jhtml'
+    checkStopUrl = ''
+    checkStopDate = 9999999999
     curPage = 1
-    while checkStopFlag != stopFlag:
+    # print(f'检查模式：{stopType}，时间点：{stopDate}，结果：{check_loop_stop(stopType, stopUrl, stopDate, checkStopUrl, checkStopDate)}')
+    while not check_loop_stop(stopType, stopUrl, stopDate, checkStopUrl, checkStopDate):
         # 页号
 
         curPageStr = ''
         if curPage > 1:
             curPageStr = f'_{curPage}'
-        print(f'正在解析第{curPage}页: {GLOBAL_URI}/{module}/index{curPageStr}.jhtml')
-        reqIndex = requests.get(f'{GLOBAL_URI}/{module}/index{curPageStr}.jhtml', HEADERS)
+        print(f'正在解析第{curPage}页: {GLOBAL_URI}/{module["name"]}/index{curPageStr}.jhtml')
+        reqIndex = requests.get(f'{GLOBAL_URI}/{module["name"]}/index{curPageStr}.jhtml', HEADERS)
         soup = BeautifulSoup(reqIndex.text, 'lxml')
         # 获取目录页中的数据列表
         tb = soup.tbody
@@ -44,30 +56,53 @@ def get_announcement_index(module):
                 r = re.search('\\n(\[.*?\])\\n(.*?)\\n(\d{4}-\d{1,2}-\d{1,2})\\n', item.text.replace(' ', ''))
                 textMatchResult = r.groups()
                 projectNo = textMatchResult[0].replace('[', '').replace(']', '')
+                release_timestamp = time.mktime(time.strptime(textMatchResult[2], '%Y-%m-%d'))
                 # 如果遍历到停止点则跳出
-                # checkStopFlag = f'{projectNo}-{textMatchResult[1]}-{textMatchResult[2]}'
-                checkStopFlag = _a['href']
-                if checkStopFlag == stopFlag:
+                checkStopUrl = _a['href']
+                checkStopDate = release_timestamp
+                if check_loop_stop(stopType, stopUrl, stopDate, checkStopUrl, checkStopDate):
                     break
 
                 detailIndex.append({'url': _a['href'],
+                                    'module': module['code'],
                                     'project_no': projectNo,
                                     'release_date': textMatchResult[2],
-                                    'release_timestamp': time.mktime(time.strptime(textMatchResult[2], '%Y-%m-%d')),
+                                    'release_timestamp': release_timestamp,
                                     'title': textMatchResult[1],
                                     })
                 # 暂时跳过”补充公告“的详情解析
                 if "补充公告" in textMatchResult[1]:
                     print(f'发现补充公告：{textMatchResult[1]}，跳过')
                     continue
-                detailMap[checkStopFlag] = get_announcement_detail(f'{GLOBAL_URI}/{_a["href"]}')
+                detailMap[checkStopUrl] = get_announcement_detail(f'{GLOBAL_URI}/{_a["href"]}')
+
+                # detail解析之间加一个短期sleep
+                time.sleep(random.randint(1, 3))
 
         curPage += 1
     print('此次获取新数据：')
     for i in detailIndex:
         print(i)
-        print(detailMap[i['url']])
+        if i['url'] in detailMap:
+            print(detailMap[i['url']])
         print('----------------')
 
     return detailIndex, detailMap
+
+
+def check_loop_stop(stop_type, url_ed, date_ed, url_flag, date_flag):
+    """
+    根据停止类型不同，进行判断爬虫循环是否停止
+    :param stop_type:   停止类型
+    :param url_ed:      停止URL
+    :param date_ed:     停止时间戳
+    :param url_flag:    当前URL
+    :param date_flag:   当前时间戳
+    :return:
+    """
+    if stop_type == StopType.URL.value:
+        return url_ed == url_flag
+    else:
+        return date_ed > date_flag
+
 

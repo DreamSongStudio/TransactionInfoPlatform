@@ -1,7 +1,7 @@
 
 
 from get_announcement_index import get_announcement_index
-from utils.Common import HOUSE_BUILDING, MUNICIPAL_ENGINEERING
+from utils.Common import HOUSE_BUILDING, MUNICIPAL_ENGINEERING, DataModule
 from utils.SqliteOperator import SqliteOperator
 from utils.FormatDate import parse_date
 from config.init_db import *
@@ -24,13 +24,18 @@ def init_db_struct(db: SqliteOperator):
     db.execute(create_table_announcement_detail)
 
 
-def spider_data(db: SqliteOperator):
+def spider_data(db: SqliteOperator, module: dict):
     """
     获取数据，并保存入库
-    :param db:
+    :param db:  SqliteOperator
+    :param module: Common
     :return: 新数据条数
     """
-    detailIndex, detailMap = get_announcement_index(HOUSE_BUILDING)
+    # 获取中止位数据，即该模块下的最新一条info数据的url
+    stop_data = db.query(f'select * from announcement_info '
+                         f'where module={module["code"]} order by id desc limit 1', 'one')
+    print('中止位数据：', stop_data)
+    detailIndex, detailMap = get_announcement_index(module, stop_data['url'] if stop_data else '')
     # 数据入库
     # 存announcement_info
     save_info_data = [tuple(i.values()) for i in detailIndex]
@@ -69,7 +74,7 @@ if __name__ == '__main__':
     # 连接数据库并初始化
     dbConnect = SqliteOperator('transactionInfo')
     init_db_struct(dbConnect)
-    spider_data(dbConnect)
+    spider_data(dbConnect, DataModule.HOUSE_BUILDING.value)
 
 
 

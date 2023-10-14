@@ -3,6 +3,7 @@
 create_table_announcement_info = """
 CREATE TABLE IF NOT EXISTS announcement_info(
     id INTEGER PRIMARY KEY,
+    module  INTEGER,
     project_no VARCHAR(30),
     title VARCHAR(100),
     release_date DATETIME,
