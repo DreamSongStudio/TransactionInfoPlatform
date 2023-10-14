@@ -28,7 +28,7 @@ def get_announcement_index(module, stopUrl):
         # 说明找不到上一条记录，为防止频率太高而被ban，这里限制为只爬取近7天的数据
         # 对初次运行数据获取的场景也适用
         stopType = StopType.DATE.value
-        stopDate = get_x_day_ago_zero_timestamp(2)
+        stopDate = get_x_day_ago_zero_timestamp(1)
     else:
         stopType = StopType.URL.value
         stopDate = 0
@@ -36,7 +36,7 @@ def get_announcement_index(module, stopUrl):
     checkStopUrl = ''
     checkStopDate = 9999999999
     curPage = 1
-    # print(f'检查模式：{stopType}，时间点：{stopDate}，结果：{check_loop_stop(stopType, stopUrl, stopDate, checkStopUrl, checkStopDate)}')
+    print(f'检查模式：{stopType}，时间点：{stopDate}，URL点：{stopUrl}')
     while not check_loop_stop(stopType, stopUrl, stopDate, checkStopUrl, checkStopDate):
         # 页号
 

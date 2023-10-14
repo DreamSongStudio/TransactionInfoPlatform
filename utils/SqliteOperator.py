@@ -32,15 +32,11 @@ class SqliteOperator:
             data = self.cur.fetchall()
             return [dict(zip([col[0] for col in desc], row)) for row in data]
         elif ret_type == 'one':
-            if self.cur.rowcount > 0:
-                data = self.cur.fetchone()
+            data = self.cur.fetchone()
+            if data:
                 return dict(zip([col[0] for col in desc], data))
             else:
                 return {}
-        elif ret_type == 'count':
-            return self.cur.rowcount
-        elif ret_type == 'aggregation':
-            return self.cur.fetchall()
 
 
 # if __name__ == '__main__':

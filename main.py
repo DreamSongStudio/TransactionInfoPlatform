@@ -36,13 +36,17 @@ def spider_data(db: SqliteOperator, module: dict):
                          f'where module={module["code"]} order by id desc limit 1', 'one')
     print('中止位数据：', stop_data)
     detailIndex, detailMap = get_announcement_index(module, stop_data['url'] if stop_data else '')
+    if not detailIndex:
+        print('此次扫描未发现新数据！')
+        return 0
     # 数据入库
     # 存announcement_info
     save_info_data = [tuple(i.values()) for i in detailIndex]
     keys_count = detailIndex[0].keys().__len__()
+    # 插入时反转下数据列表，保证最后一条入库的数据，就是页面上最新的数据
     db.executemany(f"insert into announcement_info {tuple(detailIndex[0].keys())}"
                    f"values ({','.join(['?' for i in range(keys_count)])})",
-                   save_info_data)
+                   save_info_data[::-1])
 
     # 然后以announcement_info中的url为条件，查询刚刚插入的数据，以获取id来给announcement_detail进行绑定
     query_info_url_param = [i['url'] for i in detailIndex]
