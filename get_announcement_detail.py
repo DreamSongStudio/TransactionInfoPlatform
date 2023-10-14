@@ -57,12 +57,12 @@ def get_announcement_detail(url):
         details = {
             "audit_type": _reGroups[2],
             "project_region": _reGroups[3],
-            "bid_registration_time_start ": registration_time[0],
-            "bid_registration_time_end ": registration_time[1],
+            "bid_registration_time_start": registration_time[0],
+            "bid_registration_time_end": registration_time[1],
             "bid_registration_type": _reGroups[5],
-            "allow_combination_registration ": _reGroups[6],
-            "earnest_money ": _reGroups[7],
-            "bid_amount_max ": _reGroups[8],
+            "allow_combination_registration": _reGroups[6],
+            "earnest_money": _reGroups[7],
+            "bid_amount_max": _reGroups[8],
             "bid_start_time_start": bid_start_time[0],
             "bid_start_time_end": bid_start_time[1],
             "bid_start_address": _reGroups[11],
@@ -74,10 +74,10 @@ def get_announcement_detail(url):
         parseCompany = [i for i in company.text.split('\n') if i]
         details['bid_company'] = parseCompany[0].split('：')[1]
         details['bid_representative'] = parseCompany[2].split('：')[1]
-        details['bid_representative_contact'] = parseCompany[4].split('：')[1]
+        details['bid_company_contact'] = parseCompany[4].split('：')[1]
         details['bid_proxy_company'] = parseCompany[1].split('：')[1]
         details['bid_proxy_representative'] = parseCompany[3].split('：')[1]
-        details['bid_proxy_representative_contact '] = parseCompany[5].split('：')[1]
+        details['bid_proxy_representative_contact'] = parseCompany[5].split('：')[1]
         details['bid_monitor_org'] = parseCompany[6].split('：')[1]
         details['bid_monitor_org_contact'] = parseCompany[7].split('：')[1]
 
