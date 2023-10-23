@@ -4,17 +4,13 @@
 
         初步定为使用python3+PyQT5进行开发，基于爬虫的数据获取，用SQLite作为数据库进行本地存储。
 
-
-
 # 环境
 
 Python 3.9
 
-- `./erquirement.txt`
+- `./requirement.txt`
 
 SQLite3
-
-
 
 # 功能
 
@@ -38,8 +34,6 @@ SQLite3
 
 **注：当前仅开发房屋建筑类信息**
 
-
-
 # 表
 
 ## announcement_info
@@ -53,6 +47,8 @@ SQLite3
 链接地址 url
 
 是否存在补充公告 have_supplementary
+
+模块 module
 
 ## announcement_detail
 
@@ -98,4 +94,3 @@ SQLite3
 代理联系方式 bid_proxy_representative_contact
 
 招标监督机构 bid_monitor_org - string
-

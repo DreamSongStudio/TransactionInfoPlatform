@@ -70,11 +70,19 @@ def get_announcement_index(module, stopUrl):
                                     'release_timestamp': release_timestamp,
                                     'title': textMatchResult[1],
                                     })
-                # 暂时跳过”补充公告“的详情解析
-                if "补充公告" in textMatchResult[1]:
-                    print(f'发现补充公告：{textMatchResult[1]}，跳过')
+                print(textMatchResult[1])
+                # 暂时跳过”补充公告“和“暂停公告”的详情解析
+                if "补充公告" in textMatchResult[1] \
+                        or "暂停公告" in textMatchResult[1] \
+                        or "延期公告" in textMatchResult[1] \
+                        or "失败公告" in textMatchResult[1] \
+                        or "终止招投标" in textMatchResult[1] \
+                        or "终止公告" in textMatchResult[1]:
+                    print(f'跳过')
                     continue
-                detailMap[checkStopUrl] = get_announcement_detail(f'{GLOBAL_URI}/{_a["href"]}')
+                _detail = get_announcement_detail(f'{GLOBAL_URI}/{_a["href"]}')
+                if _detail:
+                    detailMap[checkStopUrl] = _detail
 
                 # detail解析之间加一个短期sleep
                 time.sleep(random.randint(1, 3))

@@ -38,7 +38,10 @@ def get_announcement_detail(url):
 
     # 正文
     contentsCompoment = pageDetail.select('div[class="gg-box"]')
-    textPart = contentsCompoment[0].find_all('div',{'class':re.compile('gg-contant*')})
+    try:
+        textPart = contentsCompoment[0].find_all('div',{'class':re.compile('gg-contant*')})
+    except Exception as e:
+        return
     # 由三部分组成
     # 1：正文部分
     # 2：公司、监督信息
