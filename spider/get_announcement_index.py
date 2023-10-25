@@ -4,7 +4,7 @@ import time
 import re
 
 from bs4 import BeautifulSoup
-from get_announcement_detail import get_announcement_detail
+from spider.get_announcement_detail import get_announcement_detail
 from models.Constant import StopType
 from utils.Common import GLOBAL_URI, HEADERS
 from utils.FormatDate import get_x_day_ago_zero_timestamp

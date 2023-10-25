@@ -1,4 +1,4 @@
-from get_announcement_index import get_announcement_index
+from spider.get_announcement_index import get_announcement_index
 from models.Constant import DataModule
 from utils.SqliteOperator import SqliteOperator
 from config.init_db import *
