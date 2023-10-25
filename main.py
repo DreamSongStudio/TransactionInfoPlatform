@@ -1,9 +1,6 @@
-
-
 from get_announcement_index import get_announcement_index
-from utils.Common import HOUSE_BUILDING, MUNICIPAL_ENGINEERING, DataModule
+from models.Constant import DataModule
 from utils.SqliteOperator import SqliteOperator
-from utils.FormatDate import parse_date
 from config.init_db import *
 
 # 获取房屋建筑数据
