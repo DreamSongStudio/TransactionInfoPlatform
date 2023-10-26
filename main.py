@@ -73,7 +73,7 @@ def spider_data(db: SqliteOperator, module: dict):
 
 if __name__ == '__main__':
     # 连接数据库并初始化
-    dbConnect = SqliteOperator('transactionInfo')
+    dbConnect = SqliteOperator('storage/transactionInfo')
     init_db_struct(dbConnect)
     spider_data(dbConnect, DataModule.HOUSE_BUILDING.value)
 
