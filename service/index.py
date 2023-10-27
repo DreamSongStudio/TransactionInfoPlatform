@@ -123,14 +123,11 @@ class window(QWidget):
             f'left join announcement_detail ad on ai.id = ad.info_id '
             f'where ai.release_timestamp between {math.ceil(release_start_time.timestamp())} and {math.ceil(release_end_time.timestamp())}')
 
-        if bid_max_amount.strip() != '':
-            sql += f' and bid_amount_max <= {bid_max_amount}'
+        sql += f' and bid_amount_max <= {bid_max_amount}' if bid_max_amount.strip() != '' else ''
 
-        if monitor_part.strip() != '':
-            sql += f' and bid_monitor_org like "%{monitor_part}%"'
+        sql += f' and bid_monitor_org like "%{monitor_part}%"' if monitor_part.strip() != '' else ''
 
-        if self.module != 0:
-            sql += f' and module = {self.module}'
+        sql += f' and module = {self.module}' if self.module != 0 else ''
 
         print("sql:", sql)
 
@@ -192,9 +189,64 @@ class window(QWidget):
         :return:
         """
         print("爬取最新的目标工程分类数据")
+        count = 0
+        selected_options = []  # 存储选项的状态
 
-        # todo 根据self.module爬取不同类型数据
-        spider_data(self.db, DataModule.HOUSE_BUILDING.value)
+        def get_checkboxes(layout):
+            checkboxes = []
+            for i in range(layout.count()):
+                item = layout.itemAt(i)
+                if isinstance(item.widget(), QCheckBox):
+                    checkboxes.append(item.widget())
+                elif isinstance(item.layout(), QLayout):
+                    checkboxes.extend(get_checkboxes(item.layout()))
+            return checkboxes
+
+        def select(checked):
+            nonlocal count
+            count = count - 1 if not checked else count + 1
+            select_all_checkbox.setChecked(True) if count == len(DataModule) - 1 else select_all_checkbox.setChecked(False)
+
+        def select_all_changed(checked):
+            nonlocal count
+            for item in get_checkboxes(layout):
+                item.setChecked(checked)
+            count = len(DataModule) - 1 if checked else 0
+
+        # 创建窗口
+        dialog = QDialog(self)
+        dialog.setWindowTitle("更新数据模块")
+        dialog.resize(200, 100)
+
+        # 创建布局并添加部件
+        layout = QVBoxLayout()
+        select_all_checkbox = QCheckBox(DataModule.ALL.value['label'])
+        select_all_checkbox.clicked.connect(select_all_changed)
+        layout.addWidget(select_all_checkbox)
+
+        for v in DataModule:
+            box = QCheckBox(v.value['label'])
+            box.clicked.connect(select)
+            layout.addWidget(box) if v.value['code'] != 0 else None
+            selected_options.append(box)  # 将选项添加到列表中
+
+        # 创建确认按钮
+        button = QPushButton("更新")
+        button.clicked.connect(dialog.accept)
+        layout.addWidget(button)
+
+        dialog.setLayout(layout)
+
+        # 显示弹出窗口
+        if dialog.exec_() == QDialog.Accepted:
+            # 获取选择的选项
+            for option in selected_options:
+                if option.isChecked():
+                    print(option.text() + " selected")
+                    for v in DataModule:
+                        if option.text() == v.value["label"]:
+                            spider_data(self.db, v.value)
+                            break
 
     # def closeEvent(self, event, **kwargs):
     #     reply = QMessageBox.question(self, 'Message',
