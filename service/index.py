@@ -1,17 +1,20 @@
 import math
 import sys
+import config.global_var as gv
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from datetime import datetime
 from component.CustomerLineEdit import CustomWidget
 from component.LinkDelegate import LinkDelegate
-from main import spider_data, init_db_struct
-from service.styles import header_labels_style, option_button_style, table_even_style, table_odd_style
+from main import  init_db_struct
+from service.UpdateService import UpdateService, MonitorUpdateService
+from service.styles import header_labels_style
 from utils.SqliteOperator import SqliteOperator
 from utils.Common import GLOBAL_URI
 from models.Constant import DataModule
 
+gv._init()
 
 class window(QWidget):
     def __init__(self, db_connect: SqliteOperator, parent=None):
@@ -29,6 +32,13 @@ class window(QWidget):
 
         # 设置数据库对象
         self.db = db_connect
+
+        # 数据更新数
+        gv.set_value("UPDATE_DATA_COUNT", 0)
+        gv.set_value("UPDATE_DATA_FINISHED", True)
+
+
+
 
         self.setWindowTitle("招投标交易信息一览")
 
@@ -108,8 +118,8 @@ class window(QWidget):
         searchButton.setSizePolicy(size_policy)
 
         img_log_label = QLabel()
-        pixmap = QPixmap("../imgs/logo1.jpg")  # 替换为你的图像文件路径
-        # pixmap = QPixmap(r"C:\Users\30935\Pictures\长歌logo2.png")  # 替换为你的图像文件路径
+        pixmap = QPixmap("../imgs/logo1.jpg")
+        # pixmap = QPixmap(r"C:\Users\30935\Pictures\长歌logo2.png")
         img_log_label.setPixmap(pixmap)
 
         self.optionsArea.addWidget(updateDataButton, 0, 0, 1, 1)
@@ -235,9 +245,6 @@ class window(QWidget):
         工程类别选项发生改变时，重新渲染数据
         :return:
         """
-        self.module = index
-        selected_text = self.sender().currentText()
-        selected_value = self.sender().currentData()
         self.search_option()
 
     def update_data(self):
@@ -297,13 +304,35 @@ class window(QWidget):
         # 显示弹出窗口
         if dialog.exec_() == QDialog.Accepted:
             # 获取选择的选项
+            update_module_list = []
             for option in selected_options:
                 if option.isChecked():
                     print(option.text() + " selected")
                     for v in DataModule:
                         if option.text() == v.value["label"]:
-                            spider_data(self.db, v.value)
+                            update_module_list.append(v.value)
                             break
+            self.start_update(update_module_list)
+
+    def start_update(self, update_module_list):
+        """
+        开始更新数据
+        :param update_module_list:
+        :return:
+        """
+        if gv.get_value("UPDATE_DATA_FINISHED"):
+            gv.set_value("UPDATE_DATA_FINISHED", False)
+            # 设置处理线程及其信号
+            self.monitorUpdateService = MonitorUpdateService(update_module_list, self.db)
+            # self.updateService.set_target_modules(update_module_list)
+            # self.updateService.finished.connect(self.update_date_finished)  # 连接任务完成信号到槽函数
+            # self.updateService.progress.connect(self.update_date_progress)  # 连接进度信号到槽函数
+            self.monitorUpdateService.start()
+        else:
+            print("----------- 数据更新中，请稍后 ----------")
+
+
+
 
     # def closeEvent(self, event, **kwargs):
     #     reply = QMessageBox.question(self, 'Message',
