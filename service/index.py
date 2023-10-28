@@ -5,6 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from datetime import datetime
 from component.CustomerLineEdit import CustomWidget
+from component.LinkDelegate import LinkDelegate
 from main import spider_data, init_db_struct
 from service.styles import header_labels_style, option_button_style, table_even_style, table_odd_style
 from utils.SqliteOperator import SqliteOperator
@@ -108,6 +109,7 @@ class window(QWidget):
 
         img_log_label = QLabel()
         pixmap = QPixmap("../imgs/logo1.jpg")  # 替换为你的图像文件路径
+        # pixmap = QPixmap(r"C:\Users\30935\Pictures\长歌logo2.png")  # 替换为你的图像文件路径
         img_log_label.setPixmap(pixmap)
 
         self.optionsArea.addWidget(updateDataButton, 0, 0, 1, 1)
@@ -151,15 +153,16 @@ class window(QWidget):
             f'       ai.title 项目名称, '
             f'       ai.release_date 发布时间, '
             f'       ad.bid_monitor_org 监管机构, '
-            f'       ai.url 链接地址, '
-            f'       ai.module 模块 '
+            f'       ai.module 模块, '
+            f'       ai.url 链接地址 '
+            
             f'from announcement_info ai '
             f'left join announcement_detail ad on ai.id = ad.info_id '
             f'where ai.release_timestamp between {math.ceil(release_start_time.timestamp())} and {math.ceil(release_end_time.timestamp())} ')
 
         sql += f' and bid_amount_max <= {bid_max_amount}' if bid_max_amount.strip() != '' else ''
 
-        sql += f' and bid_monitor_org like "%{monitor_part}%"' if monitor_part.strip() != '' else ''
+        sql += f' and bid_monitor_org like "%{monitor_part.strip()}%"' if monitor_part.strip() != '' else ''
 
         sql += f' and module = {self.module}' if self.module != 0 else ''
 
@@ -202,6 +205,12 @@ class window(QWidget):
                             break
                 item = QTableWidgetItem(value)
                 item.setToolTip(value)
+                # 设置链接跳转
+                if colName == "链接地址":
+                    item.setText("点击跳转")
+                    item.setData(Qt.UserRole, value)
+
+
                 if i % 2 == 0:
                     item.setBackground(QColor(129, 219, 213))
                 self.tableWidget.setItem(i, j, item)
@@ -213,6 +222,13 @@ class window(QWidget):
         # self.tableWidget.resizeColumnsToContents()
         for column_index in range(self.tableWidget.columnCount()):
             self.tableWidget.horizontalHeader().setSectionResizeMode(column_index, QHeaderView.Fixed)
+
+        # 以自定义委托设置链接跳转功能
+        delegate = LinkDelegate(self.tableWidget)
+        self.tableWidget.setItemDelegate(delegate)
+    def open_url(self, url):
+        print(url)
+        QDesktopServices.openUrl(QUrl(url))
 
     def change_data_module(self, index):
         """

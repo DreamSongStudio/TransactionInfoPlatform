@@ -3,11 +3,16 @@
 main_layout_style = """"""
 
 # 操作按钮
-option_button_style = "QPushButton {  " \
-                "background-color: #47FFC5;   " \
-                "border-radius: 10px;}"
 
-
+option_button_style = """
+    QPushButton { 
+        background-color: #47FFC5;
+        border-radius: 10px;
+        }
+    QPushButton:hover {
+        background-color: blue;
+        }
+"""
 # 表头
 header_labels_style = {
                             '项目编号': {
@@ -20,10 +25,11 @@ header_labels_style = {
                                 'width': 150, },
                             '监管机构': {
                                 'width': 150, },
-                            '链接地址': {
-                                'width': 150, },
                             '模块': {
                                 'width': 100, },
+                            '链接地址': {
+                                'width': 150, },
+
 }
 
 table_odd_style = """
