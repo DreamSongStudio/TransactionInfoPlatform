@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import *
 from datetime import datetime
 from component.CustomerLineEdit import CustomWidget
 from main import spider_data, init_db_struct
-from service.styles import header_labels_style
+from service.styles import header_labels_style, option_button_style, table_even_style, table_odd_style
 from utils.SqliteOperator import SqliteOperator
 from utils.Common import GLOBAL_URI
 from models.Constant import DataModule
@@ -43,6 +43,7 @@ class window(QWidget):
         dataViewGrid.addLayout(self.optionsArea, 0, 1)
         dataViewGrid.addWidget(self.tableWidget, 5, 0, 1, 2)
         self.setLayout(dataViewGrid)
+
 
         # self.search_option()
 
@@ -101,11 +102,17 @@ class window(QWidget):
 
         searchButton = QPushButton("搜索")
         searchButton.clicked.connect(self.search_option)
+        # searchButton.setStyleSheet(option_button_style)
         size_policy = QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
         searchButton.setSizePolicy(size_policy)
 
+        img_log_label = QLabel()
+        pixmap = QPixmap("../imgs/logo1.jpg")  # 替换为你的图像文件路径
+        img_log_label.setPixmap(pixmap)
+
         self.optionsArea.addWidget(updateDataButton, 0, 0, 1, 1)
-        self.optionsArea.addWidget(searchButton, 2, 0, 2, 1)
+        self.optionsArea.addWidget(searchButton, 1, 0, 2, 1)
+        self.optionsArea.addWidget(img_log_label, 0, 2, 3, 10)
 
     def init_data_layout(self):
         """
@@ -195,6 +202,8 @@ class window(QWidget):
                             break
                 item = QTableWidgetItem(value)
                 item.setToolTip(value)
+                if i % 2 == 0:
+                    item.setBackground(QColor(129, 219, 213))
                 self.tableWidget.setItem(i, j, item)
                 j += 1
             i += 1
@@ -213,8 +222,7 @@ class window(QWidget):
         self.module = index
         selected_text = self.sender().currentText()
         selected_value = self.sender().currentData()
-        print('渲染数据类别：', selected_text)
-        print('渲染数据值：', selected_value)
+        self.search_option()
 
     def update_data(self):
         """
