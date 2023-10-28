@@ -7,18 +7,16 @@ from PyQt5.QtWidgets import *
 from datetime import datetime
 from component.CustomerLineEdit import CustomWidget
 from component.LinkDelegate import LinkDelegate
-from main import  init_db_struct
-from service.UpdateService import UpdateService, MonitorUpdateService
+from service.UpdateService import MonitorUpdateService
 from service.styles import header_labels_style
 from utils.SqliteOperator import SqliteOperator
 from utils.Common import GLOBAL_URI
 from models.Constant import DataModule
 
-gv._init()
 
-class window(QWidget):
+class TransactionInfoPlatform(QWidget):
     def __init__(self, db_connect: SqliteOperator, parent=None):
-        super(window, self).__init__(parent)
+        super(TransactionInfoPlatform, self).__init__(parent)
         self.resize_to_center(1440, 960)
         self.monitorPartEdit = None
         self.bidMaxAmountEdit = None
@@ -118,7 +116,7 @@ class window(QWidget):
         searchButton.setSizePolicy(size_policy)
 
         img_log_label = QLabel()
-        pixmap = QPixmap("../imgs/logo1.jpg")
+        pixmap = QPixmap("imgs/logo1.jpg")
         # pixmap = QPixmap(r"C:\Users\30935\Pictures\长歌logo2.png")
         img_log_label.setPixmap(pixmap)
 
@@ -354,16 +352,3 @@ class window(QWidget):
         # 将窗口移动到屏幕中央
         self.move(x, y)
 
-
-def main(db_connect):
-    app = QApplication(sys.argv)
-    ex = window(db_connect)
-    app.setWindowIcon(QIcon("../imgs/菠萝.svg"))
-    ex.show()
-    sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    dbConnect = SqliteOperator('../storage/transactionInfo')
-    init_db_struct(dbConnect)
-    main(dbConnect)

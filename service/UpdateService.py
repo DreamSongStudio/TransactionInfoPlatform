@@ -6,7 +6,7 @@ import config.global_var as gv
 
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
 from PyQt5.QtWidgets import QApplication, QMessageBox
-from main import spider_data
+from spider.entrance import spider_data
 from utils.SqliteOperator import SqliteOperator
 
 
@@ -29,10 +29,10 @@ class MonitorUpdateService(QThread):
         worker.run()
 
     def handle_finished(self):
-        icon = QIcon("../imgs/菠萝.svg")
+        icon = QIcon("imgs/菠萝.svg")
         messageBox = QMessageBox()
         messageBox.setWindowTitle("更新结果")
-        messageBox.setIconPixmap(QPixmap("../imgs/logo1.jpg"))
+        messageBox.setIconPixmap(QPixmap("imgs/logo1.jpg"))
         messageBox.setStandardButtons(QMessageBox.Yes)
         messageBox.setWindowIcon(icon)
 
