@@ -1,4 +1,7 @@
 import threading
+
+from PyQt5.QtGui import QIcon, QPixmap
+
 import config.global_var as gv
 
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
@@ -26,14 +29,25 @@ class MonitorUpdateService(QThread):
         worker.run()
 
     def handle_finished(self):
-        print("任务完成")
+        icon = QIcon("../imgs/菠萝.svg")
+        messageBox = QMessageBox()
+        messageBox.setWindowTitle("更新结果")
+        messageBox.setIconPixmap(QPixmap("../imgs/logo1.jpg"))
+        messageBox.setStandardButtons(QMessageBox.Yes)
+        messageBox.setWindowIcon(icon)
+
         if gv.get_value("UPDATE_DATA_COUNT") > 0:
-            QMessageBox.information(None, "更新结果", f"发现{gv.get_value('UPDATE_DATA_COUNT')}条新数据", QMessageBox.Yes)
+            messageBox.setText(f"更新完成，发现{gv.get_value('UPDATE_DATA_COUNT')}条新数据")
         else:
-            QMessageBox.information(None, "更新结果", f"未发现新数据", QMessageBox.Yes)
+            messageBox.setText(f"未发现新数据")
+
+        messageBox.exec_()
+
+        # 初始化全局参数
+        gv.set_value("UPDATE_DATA_COUNT", 0)
 
     def handle_progress(self, value):
-        print(f"进度：{value}%")
+        pass
 
 
 class UpdateService(QObject):

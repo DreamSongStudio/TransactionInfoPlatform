@@ -29,7 +29,7 @@ def get_announcement_index(module, stopUrl):
         # 说明找不到上一条记录，为防止频率太高而被ban，这里限制为只爬取近7天的数据
         # 对初次运行数据获取的场景也适用
         stopType = StopType.DATE.value
-        stopDate = get_x_day_ago_zero_timestamp(1)
+        stopDate = get_x_day_ago_zero_timestamp(7)
     else:
         stopType = StopType.URL.value
         stopDate = 0

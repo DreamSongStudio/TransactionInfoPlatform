@@ -279,8 +279,9 @@ class window(QWidget):
 
         # 创建窗口
         dialog = QDialog(self)
-        dialog.setWindowTitle("更新数据模块")
-        dialog.resize(200, 100)
+        dialog.setWindowTitle("更新数据")
+        dialog.resize(200, 450)
+        dialog.setFixedSize(dialog.width(), dialog.height())
 
         # 创建布局并添加部件
         layout = QVBoxLayout()
@@ -324,25 +325,9 @@ class window(QWidget):
             gv.set_value("UPDATE_DATA_FINISHED", False)
             # 设置处理线程及其信号
             self.monitorUpdateService = MonitorUpdateService(update_module_list, self.db)
-            # self.updateService.set_target_modules(update_module_list)
-            # self.updateService.finished.connect(self.update_date_finished)  # 连接任务完成信号到槽函数
-            # self.updateService.progress.connect(self.update_date_progress)  # 连接进度信号到槽函数
             self.monitorUpdateService.start()
         else:
-            print("----------- 数据更新中，请稍后 ----------")
-
-
-
-
-    # def closeEvent(self, event, **kwargs):
-    #     reply = QMessageBox.question(self, 'Message',
-    #                                  "Are you sure to quit?", QMessageBox.Yes |
-    #                                  QMessageBox.No, QMessageBox.No)
-    #
-    #     if reply == QMessageBox.Yes:
-    #         event.accept()
-    #     else:
-    #         event.ignore()
+            QMessageBox.warning(self, "数据更新", "后台正在获取最新数据，请耐心等待", QMessageBox.Yes)
 
     def resize_to_center(self, *args):
         """
@@ -373,6 +358,7 @@ class window(QWidget):
 def main(db_connect):
     app = QApplication(sys.argv)
     ex = window(db_connect)
+    app.setWindowIcon(QIcon("../imgs/菠萝.svg"))
     ex.show()
     sys.exit(app.exec_())
 
