@@ -2,6 +2,7 @@ import random
 import requests
 import time
 import re
+import config.global_var as gv
 
 from bs4 import BeautifulSoup
 from spider.get_announcement_detail import get_announcement_detail
@@ -28,7 +29,7 @@ def get_announcement_index(module, stopUrl):
         # 说明找不到上一条记录，为防止频率太高而被ban，这里限制为只爬取近7天的数据
         # 对初次运行数据获取的场景也适用
         stopType = StopType.DATE.value
-        stopDate = get_x_day_ago_zero_timestamp(1)
+        stopDate = get_x_day_ago_zero_timestamp(7)
     else:
         stopType = StopType.URL.value
         stopDate = 0
@@ -49,9 +50,11 @@ def get_announcement_index(module, stopUrl):
         # 获取目录页中的数据列表
         tb = soup.tbody
         for item in tb.children:
+
             _a = item.find('a')
             # print(_a)
             if type(_a) != int:
+
                 # 解析 [项目编号，项目名称，发布时间]
                 r = re.search('\\n(\[.*?\])\\n(.*?)\\n(\d{4}-\d{1,2}-\d{1,2})\\n', item.text.replace(' ', ''))
                 textMatchResult = r.groups()
@@ -70,6 +73,8 @@ def get_announcement_index(module, stopUrl):
                                     'release_timestamp': release_timestamp,
                                     'title': textMatchResult[1],
                                     })
+                # 发送信号
+                gv.set_value("UPDATE_DATA_COUNT", gv.get_value("UPDATE_DATA_COUNT") + 1)
                 print(textMatchResult[1])
                 # 暂时跳过”补充公告“和“暂停公告”的详情解析
                 if "补充公告" in textMatchResult[1] \

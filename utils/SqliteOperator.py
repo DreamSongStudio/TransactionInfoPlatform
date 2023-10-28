@@ -3,7 +3,7 @@ import sqlite3
 
 class SqliteOperator:
     def __init__(self, sql_name='memory'):
-        self.con = sqlite3.connect(sql_name)
+        self.con = sqlite3.connect(sql_name, check_same_thread=False)
         self.cur = self.con.cursor()
 
     def execute(self, sql):
