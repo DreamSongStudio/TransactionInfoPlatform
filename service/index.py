@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import *
 from datetime import datetime
 from component.CustomerLineEdit import CustomWidget
 from main import spider_data, init_db_struct
+from service.styles import header_labels_style
 from utils.SqliteOperator import SqliteOperator
 from utils.Common import GLOBAL_URI
 from models.Constant import DataModule
@@ -14,12 +15,13 @@ from models.Constant import DataModule
 class window(QWidget):
     def __init__(self, db_connect: SqliteOperator, parent=None):
         super(window, self).__init__(parent)
-        self.resize_to_center(200, 100)
+        self.resize_to_center(1440, 960)
         self.monitorPartEdit = None
         self.bidMaxAmountEdit = None
         self.releaseTimeStart = None
         self.releaseTimeEnd = None
         self.moduleSelect = None
+        self.tableWidget = None
 
         # 设置初始类型为0
         self.module = 0
@@ -29,19 +31,20 @@ class window(QWidget):
 
         self.setWindowTitle("招投标交易信息一览")
 
-        dataViewGrid = QGridLayout()
         self.searchGrid = QGridLayout()
         self.optionsArea = QGridLayout()
 
         self.init_search_layout()
         self.init_options_area()
+        self.init_data_layout()
 
-        self.tableWidget = QTableWidget()
-        dataViewGrid.addWidget(self.tableWidget, 5, 0, 1, 2)
-
+        dataViewGrid = QGridLayout()
         dataViewGrid.addLayout(self.searchGrid, 0, 0)
         dataViewGrid.addLayout(self.optionsArea, 0, 1)
+        dataViewGrid.addWidget(self.tableWidget, 5, 0, 1, 2)
         self.setLayout(dataViewGrid)
+
+        # self.search_option()
 
     def init_search_layout(self):
         """
@@ -64,8 +67,9 @@ class window(QWidget):
         self.releaseTimeEnd = QDateEdit()
         self.releaseTimeEnd.setCalendarPopup(True)
 
-        self.releaseTimeStart.setDate(default_date)
         self.releaseTimeEnd.setDate(default_date)
+        self.releaseTimeStart.setDate(default_date.addDays(-7))
+
 
         moduleLabel = QLabel("工程类别：")
         self.moduleSelect = QComboBox()
@@ -103,6 +107,23 @@ class window(QWidget):
         self.optionsArea.addWidget(updateDataButton, 0, 0, 1, 1)
         self.optionsArea.addWidget(searchButton, 2, 0, 2, 1)
 
+    def init_data_layout(self):
+        """
+        渲染数据展示表格
+        :return:
+        """
+        self.tableWidget = QTableWidget()
+        self.tableWidget.setColumnCount(len(header_labels_style.keys()))
+        # 设置水平表头标签
+
+        self.tableWidget.setHorizontalHeaderLabels(header_labels_style.keys())
+        # 设置每列固定宽度
+        for column_index in range(self.tableWidget.columnCount()):
+            header_item = self.tableWidget.horizontalHeaderItem(column_index)
+            column_name = header_item.text()
+            print(f'给第{column_index}列：{column_name}，设置宽度：{header_labels_style[column_name]["width"]}')
+            self.tableWidget.setColumnWidth(column_index, header_labels_style[column_name]['width'])
+
     def search_option(self):
         """
         搜索数据
@@ -118,10 +139,16 @@ class window(QWidget):
               f'发布时间：{release_start_time.timestamp()}到{release_end_time.timestamp()}')
 
         sql = (
-            f'select ai.project_no 项目编号, ai.title 项目名称, ai.release_date 发布时间, ai.url 链接地址, ai.module 模块, ai.have_supplementary 是否存在补充公告 '
+            f'select ai.project_no 项目编号, '
+            f'       ad.bid_amount_max "最高限价(万元)", '
+            f'       ai.title 项目名称, '
+            f'       ai.release_date 发布时间, '
+            f'       ad.bid_monitor_org 监管机构, '
+            f'       ai.url 链接地址, '
+            f'       ai.module 模块 '
             f'from announcement_info ai '
             f'left join announcement_detail ad on ai.id = ad.info_id '
-            f'where ai.release_timestamp between {math.ceil(release_start_time.timestamp())} and {math.ceil(release_end_time.timestamp())}')
+            f'where ai.release_timestamp between {math.ceil(release_start_time.timestamp())} and {math.ceil(release_end_time.timestamp())} ')
 
         sql += f' and bid_amount_max <= {bid_max_amount}' if bid_max_amount.strip() != '' else ''
 
@@ -129,22 +156,24 @@ class window(QWidget):
 
         sql += f' and module = {self.module}' if self.module != 0 else ''
 
+        sql += ' order by ai.id desc'
+
         print("sql:", sql)
 
         data = self.db.query(sql)
-
         if len(data) == 0:
             self.tableWidget.clear()
             self.tableWidget.setRowCount(0)
-            self.tableWidget.setColumnCount(0)
-            self.resize_to_center(200, 100)
+            self.tableWidget.setColumnCount(len(header_labels_style.keys()))
+            self.tableWidget.setHorizontalHeaderLabels(header_labels_style.keys())
             return
 
         self.tableWidget.setRowCount(len(data))
         self.tableWidget.setColumnCount(len(data[0]))
-        self.tableWidget.setHorizontalHeaderLabels(data[0].keys())
-
-        self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        columns = list(data[0].keys())
+        self.tableWidget.setHorizontalHeaderLabels(columns)
+        # 设置水平表头标签样式
+        # self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.tableWidget.setEditTriggers(QAbstractItemView.NoEditTriggers)
         # self.tableWidget.setSelectionBehavior(QAbstractItemView.SelectRows)
         # self.tableWidget.verticalHeader().setVisible(False)  # 水平方向的表头
@@ -155,22 +184,26 @@ class window(QWidget):
 
         for row in data:
             for colName in row:
-                value = row[colName]
+                value = str(row[colName]) if row[colName] else ""
 
                 if colName == "链接地址":
                     value = GLOBAL_URI + value
                 elif colName == "模块":
                     for enum in DataModule:
-                        if enum.value['code'] == value:
+                        if enum.value['code'] == int(value):
                             value = enum.value['label']
                             break
-
-                self.tableWidget.setItem(i, j, QTableWidgetItem(value))
+                item = QTableWidgetItem(value)
+                item.setToolTip(value)
+                self.tableWidget.setItem(i, j, item)
                 j += 1
             i += 1
             j = 0
 
-        self.resize_to_center(1000, 600)
+        # 重新渲染数据后固定列宽度
+        # self.tableWidget.resizeColumnsToContents()
+        for column_index in range(self.tableWidget.columnCount()):
+            self.tableWidget.horizontalHeader().setSectionResizeMode(column_index, QHeaderView.Fixed)
 
     def change_data_module(self, index):
         """
