@@ -1,3 +1,4 @@
+import os
 import sys
 import config.global_var as gv
 
@@ -20,6 +21,8 @@ def init_db_struct(db: SqliteOperator):
 
 if __name__ == '__main__':
     # 连接数据库并初始化
+    if not os.path.exists("./storage"):
+        os.makedirs("./storage")
     dbConnect = SqliteOperator('./storage/transactionInfo')
     init_db_struct(dbConnect)
     # 初始化全局变量对象

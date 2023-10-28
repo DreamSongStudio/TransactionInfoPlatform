@@ -12,6 +12,30 @@ Python 3.9
 
 SQLite3
 
+
+
+# 启动
+
+1. 安装包
+
+```shell
+pip install -r requirement.txt
+```
+
+2. 启动`main.py`
+
+
+
+# 打包
+
+```shell
+pyinstaller -F -w -i ./imgs/boluo.ico main.py
+```
+
+
+
+
+
 # 功能
 
 ## 主要信息展示页
