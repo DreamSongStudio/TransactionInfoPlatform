@@ -118,3 +118,15 @@ pyinstaller -F -w -i ./imgs/boluo.ico main.py
 代理联系方式 bid_proxy_representative_contact
 
 招标监督机构 bid_monitor_org - string
+
+
+
+# 后续可优化处
+
+1. 将图片文件以base64编码形式存在代码中，以方便打包、调用与安全
+
+2. 数据更新的进度展示
+
+3. UI美化
+
+4. 
